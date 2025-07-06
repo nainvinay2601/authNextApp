@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   // state to hold info about user
-
+  const router = useRouter();
   const [user, setUser] = useState({
     email: "",
     password: "",
@@ -15,12 +16,38 @@ export default function LoginPage() {
 
   // async function to set the user info to
 
-  const onLogin = async () => {};
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const onLogin = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/login", user);
+      console.log("Login Success", response.data);
+      toast.success("Login Success");
+      router.push("/profile");
+    } catch (error: unknown) {
+      console.log("Login failed", error.message);
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length > 0) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <div className="flex flex-col">
-        <h1 className="mb-4 text-3xl font-bold">Login</h1>
+        <h1 className="mb-4 text-3xl font-bold">
+          {loading ? "Processing" : "Login"}
+        </h1>
 
         {/* input fields */}
 
@@ -48,7 +75,7 @@ export default function LoginPage() {
           onClick={onLogin}
           className="py-2 px-6  mt-3 border   bg-blue-600 rounded-lg mb-4  border-none outline-none    hover:bg-blue-700"
         >
-         Login
+          Login
         </button>
         <p>
           Account {`doesn't`} exist?{"    "}
